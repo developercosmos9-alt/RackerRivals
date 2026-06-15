@@ -102,6 +102,7 @@ local EspEnabled = false
 local SkeletonEnabled = false
 local EspMaxDistance = 1000
 local WalkSpeed = 16
+local WalkSpeedEnabled = false
 local AutoParryEnabled = false
 local ParryRadius = 60
 local parryDebounce = false
@@ -117,7 +118,11 @@ local function applyWalkSpeed()
     if not player or not player.Character then return end
     local hum = player.Character:FindFirstChildOfClass("Humanoid")
     if hum then
-        hum.WalkSpeed = WalkSpeed or 16
+        if WalkSpeedEnabled then
+            hum.WalkSpeed = WalkSpeed or 16
+        else
+            hum.WalkSpeed = 16
+        end
     end
 end
 
@@ -287,12 +292,7 @@ local Workspace = game:GetService("Workspace")
 
 game:GetService("RunService").RenderStepped:Connect(function()
     pcall(function()
-        local player = getPlayer()
-        if not player or not player.Character then return end
-        local hum = player.Character:FindFirstChildOfClass("Humanoid")
-        if hum and hum.Health > 0 then
-            hum.WalkSpeed = WalkSpeed or 16
-        end
+        applyWalkSpeed()
     end)
 end)
 
@@ -632,7 +632,7 @@ local Tab = Window:MakeTab({
 
 Tab:AddSection("Main")
 
-Tab:AddToggle({
+local toggleInfiniteJump = Tab:AddToggle({
    IsMobile = false,
    IsPC = false,
    PremiumOnly = false,
@@ -645,8 +645,12 @@ Tab:AddToggle({
         InfiniteJumpEnabled = Value
     end    
 })
+pcall(function()
+    if toggleInfiniteJump and toggleInfiniteJump.Set then toggleInfiniteJump:Set(false) end
+    if toggleInfiniteJump and toggleInfiniteJump.SetValue then toggleInfiniteJump:SetValue(false) end
+end)
 
-Tab:AddToggle({
+local toggleNoClip = Tab:AddToggle({
    IsMobile = false,
    IsPC = false,
    PremiumOnly = false,
@@ -664,20 +668,28 @@ Tab:AddToggle({
         end
     end    
 })
+pcall(function()
+    if toggleNoClip and toggleNoClip.Set then toggleNoClip:Set(false) end
+    if toggleNoClip and toggleNoClip.SetValue then toggleNoClip:SetValue(false) end
+end)
 
-Tab:AddToggle({
+local toggleAutoParry = Tab:AddToggle({
    IsMobile = false,
    IsPC = false,
    PremiumOnly = false,
    HidePremium = false,
    Name = "Auto Parry",
-   Desc = "parrys the ball when it gets close",
+   Desc = "Currently getting worked on",
    Default = false,
    Flag = "AutoParry",
     Callback = function(Value)
         AutoParryEnabled = Value
     end    
 })
+pcall(function()
+    if toggleAutoParry and toggleAutoParry.Set then toggleAutoParry:Set(false) end
+    if toggleAutoParry and toggleAutoParry.SetValue then toggleAutoParry:SetValue(false) end
+end)
 
 local Tab = Window:MakeTab({
   IsMobile = false,
@@ -688,7 +700,7 @@ local Tab = Window:MakeTab({
 
 Tab:AddSection("Premium")
 
-Tab:AddToggle({
+local toggleDash = Tab:AddToggle({
    IsMobile = false,
    IsPC = false,
    HidePremium = false,
@@ -700,6 +712,10 @@ Tab:AddToggle({
         DashEnabled = Value
     end    
 })
+pcall(function()
+    if toggleDash and toggleDash.Set then toggleDash:Set(false) end
+    if toggleDash and toggleDash.SetValue then toggleDash:SetValue(false) end
+end)
 
 local Tab = Window:MakeTab({
   IsMobile = false,
@@ -710,7 +726,7 @@ local Tab = Window:MakeTab({
 
 Tab:AddSection("Visuals")
 
-Tab:AddToggle({
+local toggleESP = Tab:AddToggle({
    IsMobile = false,
    IsPC = false,
    PremiumOnly = false,
@@ -730,8 +746,12 @@ Tab:AddToggle({
         end
     end    
 })
+pcall(function()
+    if toggleESP and toggleESP.Set then toggleESP:Set(false) end
+    if toggleESP and toggleESP.SetValue then toggleESP:SetValue(false) end
+end)
 
-Tab:AddToggle({
+local toggleSkeletonESP = Tab:AddToggle({
    IsMobile = false,
    IsPC = false,
    PremiumOnly = false,
@@ -753,6 +773,10 @@ Tab:AddToggle({
         end
     end    
 })
+pcall(function()
+    if toggleSkeletonESP and toggleSkeletonESP.Set then toggleSkeletonESP:Set(false) end
+    if toggleSkeletonESP and toggleSkeletonESP.SetValue then toggleSkeletonESP:SetValue(false) end
+end)
 
 -- Ensure ESP features start disabled even if GUI saved state is true
 EspEnabled = false
@@ -762,7 +786,7 @@ for player, _ in pairs(espObjects) do
 end
 
 -- Best-effort: force GUI flags off in case the library restores saved toggles
-local knownFlags = {"InfiniteJump", "NoClip", "AutoParry", "Dash", "ESP", "SkeletonESP", "WalkSpeedSlider", "ESPMaxDistance"}
+local knownFlags = {"InfiniteJump", "NoClip", "AutoParry", "Dash", "ESP", "SkeletonESP", "WalkSpeedSlider", "ESPMaxDistance", "WalkSpeedEnabled", "Toggle1"}
 for _, flag in ipairs(knownFlags) do
     pcall(function()
         if Window.SetFlag then Window:SetFlag(flag, false) end
@@ -778,7 +802,7 @@ for _, flag in ipairs(knownFlags) do
     end)
 end
 
-Tab:AddSlider({
+local sliderESPMaxDistance = Tab:AddSlider({
    IsMobile = false,
    IsPC = false,
    PremiumOnly = false,
@@ -794,6 +818,10 @@ Tab:AddSlider({
          EspMaxDistance = Value
     end
 })
+pcall(function()
+    if sliderESPMaxDistance and sliderESPMaxDistance.Set then sliderESPMaxDistance:Set(EspMaxDistance) end
+    if sliderESPMaxDistance and sliderESPMaxDistance.SetValue then sliderESPMaxDistance:SetValue(EspMaxDistance) end
+end)
 
 local Tab = Window:MakeTab({
   IsMobile = false,
@@ -804,7 +832,26 @@ local Tab = Window:MakeTab({
 
 Tab:AddSection("Player")
 
-Tab:AddSlider({
+local toggleWalkSpeedEnable = Tab:AddToggle({
+   IsMobile = false,
+   IsPC = false,
+   PremiumOnly = false,
+   HidePremium = false,
+   Name = "walkspeed toggle",
+   Desc = "makes you move fast boiiii",
+   Default = false,
+   Flag = "Toggle1",
+   Callback = function(Value)
+       WalkSpeedEnabled = Value
+       applyWalkSpeed()
+   end
+})
+pcall(function()
+    if toggleWalkSpeedEnable and toggleWalkSpeedEnable.Set then toggleWalkSpeedEnable:Set(false) end
+    if toggleWalkSpeedEnable and toggleWalkSpeedEnable.SetValue then toggleWalkSpeedEnable:SetValue(false) end
+end)
+
+local sliderWalkSpeed = Tab:AddSlider({
    IsMobile = false,
    IsPC = false,
    PremiumOnly = false,
@@ -822,3 +869,20 @@ Tab:AddSlider({
         applyWalkSpeed()
     end    
 })
+pcall(function()
+    if sliderWalkSpeed and sliderWalkSpeed.Set then sliderWalkSpeed:Set(WalkSpeed) end
+    if sliderWalkSpeed and sliderWalkSpeed.SetValue then sliderWalkSpeed:SetValue(WalkSpeed) end
+end)
+
+local Tab = Window:MakeTab({
+  IsMobile = false,
+  IsPC = false,
+  Name = "Credits",
+  Icon = "rbxassetid://4483345998"
+})
+
+Tab:AddSection("Credits")
+
+Tab:AddParagraph("SuperCosmos","Coder Of This Script")
+
+Tab:AddParagraph("CR33P","Helped Code And Tester Of This Script")
