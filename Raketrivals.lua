@@ -703,6 +703,7 @@ Tab:AddSection("Premium")
 local toggleDash = Tab:AddToggle({
    IsMobile = false,
    IsPC = false,
+   PremiumOnly = true,
    HidePremium = false,
    Name = "Dash",
    Desc = "No cooldown on dash",
