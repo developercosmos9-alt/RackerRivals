@@ -738,7 +738,7 @@ local toggleESP = Tab:AddToggle({
    Flag = "ESP",
     Callback = function(Value)
         EspEnabled = Value
-        if Value then
+        if Value or SkeletonEnabled then
             refreshESP()
         else
             for player, _ in pairs(espObjects) do
@@ -763,13 +763,11 @@ local toggleSkeletonESP = Tab:AddToggle({
    Flag = "SkeletonESP",
     Callback = function(Value)
         SkeletonEnabled = Value
-        if Value then
+        if Value or EspEnabled then
             refreshESP()
         else
-            if not EspEnabled then
-                for player, _ in pairs(espObjects) do
-                    removeESP(player)
-                end
+            for player, _ in pairs(espObjects) do
+                removeESP(player)
             end
         end
     end    
